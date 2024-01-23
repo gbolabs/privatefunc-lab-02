@@ -1,0 +1,15 @@
+{
+    "namingPatterns":
+    {
+        "function": "iwb-{0}-func-{1}-{2}-{3}",
+        "appServicePlan": "iwb-{0}-asp-{1}-{2}",
+        "keyVault": "iwb-{0}-kv-{1}-{2}",
+        "applicationInsights": "iwb-{0}-appi-{1}-{2}",
+        "logAnalyticsWorkspace": "iwb-{0}-la-{1}-{2}",
+        "deployment": "iwb-{0}-deployment-{1}-{2}",
+        "modules": "iwb-{0}-modules-{1}-{2}",
+        "privateEndpoint": "iwb-pep-{0}-{1}-{2}",
+        "storageAccount": "iwb{0}sa{1}{2}",
+        "managedIdentity": "iwb-{0}-id-{1}-{2}-{3}"
+    }
+}
