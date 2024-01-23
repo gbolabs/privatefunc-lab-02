@@ -35,10 +35,10 @@ az vm create --resource-group $resourcegroup --name vm-ubuntu --image Ubuntu2204
 az vm open-port --resource-group $resourcegroup --name vm-ubuntu --port 22
 
 # Private Azure DNS Zone for the VNET for the PEP azurewebsites.net (Azure Web App) storageaccount (Azure Storage, blob and file) and keyvault (Azure Key Vault) and return id
-websiteDnsZoneId = az network private-dns zone create --resource-group $resourcegroup --name privatelink.azurewebsites.net --output tsv --query id
-blobStorageZoneId = az network private-dns zone create --resource-group $resourcegroup --name privatelink.blob.core.windows.net --output tsv --query id
-fileStorageZoneId = az network private-dns zone create --resource-group $resourcegroup --name privatelink.file.core.windows.net --output tsv --query id
-keyVaultZoneId = az network private-dns zone create --resource-group $resourcegroup --name privatelink.vaultcore.azure.net --output tsv --query id
+websiteDnsZoneId=$(az network private-dns zone create --resource-group $resourcegroup --name privatelink.azurewebsites.net --output tsv --query id)
+blobStorageZoneId=$(az network private-dns zone create --resource-group $resourcegroup --name privatelink.blob.core.windows.net --output tsv --query id)
+fileStorageZoneId=$(az network private-dns zone create --resource-group $resourcegroup --name privatelink.file.core.windows.net --output tsv --query id)
+keyVaultZoneId=$(az network private-dns zone create --resource-group $resourcegroup --name privatelink.vaultcore.azure.net --output tsv --query id)
 
 # Create the link between the VNET and the DNS Zone
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.azurewebsites.net --name link-vnet-azurewebsites --virtual-network $vnet --registration-enabled false
