@@ -14,7 +14,7 @@ param serviceConnectionPrincipal string = ''
 @description('Use to build the resource name according to the naming convention')
 param applicationName string
 param uniqueString string
-param appServiceSku object
+param appServiceSku object = {}
 param keyVaultSku string
 param storageAccountSkuName string
 
@@ -66,7 +66,7 @@ module keyVaultModule 'modules/create-keyvault.bicep' = {
   }
 }
 
-module keyVaultAccessPolicyForPipeline 'modules/add-keyVaultAccessPolicy.bicep' = {
+module keyVaultAccessPolicyForPipeline 'modules/add-keyVaultAccessPolicy.bicep' = if (serviceConnectionPrincipal != ''){
   name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForPipeline', environment, uniqueString)
   params: {
     kvName: keyVaultModule.outputs.kvName
@@ -89,7 +89,7 @@ module keyVaultAccessPolicyForUAMgdId 'modules/add-keyVaultAccessPolicy.bicep' =
   }
 }
 
-module keyVaultAccessPolicyForDevEntraIDGroup 'modules/add-keyVaultAccessPolicy.bicep' = {
+module keyVaultAccessPolicyForDevEntraIDGroup 'modules/add-keyVaultAccessPolicy.bicep' = if (devEntraIdGroupIdForKvAccessPolicies != '') {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForDevEntraIDGroup', environment, uniqueString)
   params: {
     kvName: keyVaultModule.outputs.kvName
