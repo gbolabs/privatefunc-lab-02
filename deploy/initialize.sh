@@ -84,9 +84,9 @@ vm=$(az vm create --resource-group $resourcegroup --name $vmname --image Ubuntu2
     --admin-username azureuser --generate-ssh-keys --subnet $subnetvm --vnet-name $vnetVm \
     --public-ip-sku Standard --size Standard_B1s \
     --nsg-rule SSH --assign-identity "[system]" \
-    --ssh-key-values /host-home/.ssh/id_rsa.pub \
+    # --ssh-key-values /host-home/.ssh/id_rsa \
     --public-ip-address-dns-name $vmname \
-    --priority Spot --max-price -1 --eviction-policy Deallocate \
+    # --priority Spot --max-price -1 --eviction-policy Deallocate \
     --output tsv --query name)
 
 hostname=$(az vm show --resource-group $resourcegroup --name $vmname --show-details --query publicIps -o tsv)
