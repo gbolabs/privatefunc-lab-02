@@ -38,6 +38,11 @@ az network vnet create --resource-group $resourcegroup --name $vnetVm --address-
 echo "Create the subnet $subnetvm"
 az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnetVm --name $subnetvm --address-prefixes '192.168.60.128/27'
 
+# Peer the VNETs
+echo "Peer the VNETs"
+az network vnet peering create --resource-group $resourcegroup --name $vnet-to-$vnetVm --vnet-name $vnet --remote-vnet $vnetVm --allow-vnet-access
+az network vnet peering create --resource-group $resourcegroup --name $vnetVm-to-$vnet --vnet-name $vnetVm --remote-vnet $vnet --allow-vnet-access
+
 # Private Azure DNS Zone for the VNET for the PEP azurewebsites.net (Azure Web App) storageaccount (Azure Storage, blob and file) and keyvault (Azure Key Vault) and return id
 echo "Create the private DNS Zones"
 websiteDnsZoneId=$(az network private-dns zone create --resource-group $resourcegroup --name privatelink.azurewebsites.net --output tsv --query id)
@@ -49,29 +54,29 @@ keyVaultZoneId=$(az network private-dns zone create --resource-group $resourcegr
 echo "Create the link between the VNET and the DNS Zone"
 echo "Link VNET $vnetVm to privatelink.azurewebsites.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.azurewebsites.net \
-    --name link-vnet-azurewebsites --virtual-network $vnetVm --registration-enabled false
+    --name link-$vnetVm-azurewebsites --virtual-network $vnetVm --registration-enabled false
 echo "Link VNET $vnetVm to privatelink.blob.core.windows.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.blob.core.windows.net \
-    --name link-vnet-blob --virtual-network $vnetVm --registration-enabled false
+    --name link-$vnetVm-blob --virtual-network $vnetVm --registration-enabled false
 echo "Link VNET $vnetVm to privatelink.file.core.windows.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.file.core.windows.net \
-    --name link-vnet-file --virtual-network $vnetVm --registration-enabled false
+    --name link-$vnetVm-file --virtual-network $vnetVm --registration-enabled false
 echo "Link VNET $vnetVm to privatelink.vaultcore.azure.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.vaultcore.azure.net \
-    --name link-vnet-vault --virtual-network $vnetVm --registration-enabled false
+    --name link-$vnetVm-vault --virtual-network $vnetVm --registration-enabled false
 
 echo "Link VNET $vnet to privatelink.azurewebsites.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.azurewebsites.net \
-    --name link-vnet-azurewebsites --virtual-network $vnet --registration-enabled false
+    --name link-$vnet-azurewebsites --virtual-network $vnet --registration-enabled false
 echo "Link VNET $vnet to privatelink.blob.core.windows.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.blob.core.windows.net \
-    --name link-vnet-blob --virtual-network $vnet --registration-enabled false
+    --name link-$vnet-blob --virtual-network $vnet --registration-enabled false
 echo "Link VNET $vnet to privatelink.file.core.windows.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.file.core.windows.net \
-    --name link-vnet-file --virtual-network $vnet --registration-enabled false
+    --name link-$vnet-file --virtual-network $vnet --registration-enabled false
 echo "Link VNET $vnet to privatelink.vaultcore.azure.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.vaultcore.azure.net \
-    --name link-vnet-vault --virtual-network $vnet --registration-enabled false
+    --name link-$vnet-vault --virtual-network $vnet --registration-enabled false
 
 # Create a ubuntu VM
 echo "Create a ubuntu VM"
@@ -80,12 +85,10 @@ vm=$(az vm create --resource-group $resourcegroup --name $vmname --image Ubuntu2
     --public-ip-sku Standard --size Standard_B1s \
     --nsg-rule SSH --assign-identity "[system]" \
     --ssh-key-values /host-home/.ssh/id_rsa.pub \
+    --public-ip-address-dns-name $vmname \
+    --priority Spot --max-price -1 --eviction-policy Deallocate \
     --output tsv --query name)
 
 hostname=$(az vm show --resource-group $resourcegroup --name $vmname --show-details --query publicIps -o tsv)
-
-echo "Install the Azure CLI on the VM"
-az vm run-command invoke --resource-group $resourcegroup --name $vmname --command-id RunShellScript \
-    --scripts "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
 
 echo "VM: $vm / $hostname"
