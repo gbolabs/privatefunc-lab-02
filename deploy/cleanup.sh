@@ -6,4 +6,4 @@ resourcegroup="rg-private-function-gbo-02"
 az account set --subscription $subscripton
 
 # clear the resource-group
-az group delete --name $resourcegroup --yes --no-wait
+az group delete --name $resourcegroup --yes
