@@ -6,7 +6,7 @@ vnetVm="vnet-private-function-vm-gbo-02"
 subnetpep="subnet-pep-private-function-gbo-02"
 subnetapp="subnet-app-private-function-gbo-02"
 subnetvm="subnet-vm-private-function-gbo-02"
-location="uksouth"
+location="switzerlandnorth"
 vmname="vm-private-function-gbo-02"
 
 # set the subscription

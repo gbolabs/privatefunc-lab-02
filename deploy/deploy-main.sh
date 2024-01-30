@@ -1,22 +1,22 @@
 # Description: Initialize the Azure environment
-subscripton="199fc2c4-a57c-4049-afbe-e1831f4b2f6e"
+subscription="199fc2c4-a57c-4049-afbe-e1831f4b2f6e"
 resourcegroup="rg-private-function-gbo-02"
 vnet="vnet-private-function-gbo-02"
 vnetVm="vnet-private-function-vm-gbo-02"
 subnetpep="subnet-pep-private-function-gbo-02"
 subnetapp="subnet-app-private-function-gbo-02"
 subnetvm="subnet-vm-private-function-gbo-02"
-location="uksouth"
+location="switzerlandnorth"
 vmname="vm-private-function-gbo-02"
 keyVaultName="iwb-prvfct-kv-dev-gbo"
 
 # set the subscription
 echo "Set the subscription"
-az account set --subscription $subscripton
+az account set --subscription $subscription
 
 # if parameter $1 says --recover-keyvault, then recover the keyvault
 if [ "$1" = "--recover-keyvault" ]; then
-    recover-keyvault.sh $keyVaultName
+    sh ./recover-keyvault.sh $subscription $keyVaultName
 fi
 
 # deploy infarstructure
@@ -52,7 +52,7 @@ az deployment group create --resource-group $resourcegroup --template-file iac/f
     uniqueString='gbo' \
     functionUserAssignedManagedIdentity="$uaId" \
     runtimeName='dotnet-isolated' \
-    runtimeVersion='8.0' \
+    runtimeVersion='6.0' \
     vnetName=$vnet \
     endpointSubnetName=$subnetpep \
     appSubnetName=$subnetapp \
