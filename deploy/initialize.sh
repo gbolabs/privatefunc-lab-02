@@ -28,7 +28,7 @@ az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet 
 
 # Create the subnet for the APP
 echo "Create the subnet $subnetapp"
-az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet --name $subnetapp --address-prefixes '192.168.50.32/27'
+az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet --name $subnetapp --address-prefixes '192.168.50.32/27' --delegations 'Microsoft.Web/serverFarms'
 
 # Create the VNet for the VM
 echo "Create the VNET $vnetVm"
