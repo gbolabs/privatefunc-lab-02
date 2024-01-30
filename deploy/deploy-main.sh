@@ -13,6 +13,14 @@ vmname="vm-private-function-gbo-02"
 echo "Set the subscription"
 az account set --subscription $subscripton
 
+# if parameter $1 says recover, then recover the keyvault
+if [ $1 == "recover" ]; then
+    # recover the keyvault
+    echo "Recover the keyvault"
+    az keyvault recover --name iwb-prvfct-kv-dev-gbo
+    exit 0
+fi
+
 # deploy infarstructure
 az deployment group create --resource-group $resourcegroup --template-file iac/infrastructure.bicep --name deploy-infra \
     --parameters location=$location \
@@ -30,7 +38,7 @@ az deployment group create --resource-group $resourcegroup --template-file iac/i
     storageFilePrivateDnsZoneId='/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-02/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net'
 
 
-appPlanId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-02/providers/Microsoft.Web/serverFarms/iwb-prvfct-asp-dev-gbo"
+appServicePlanId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-02/providers/Microsoft.Web/serverFarms/iwb-prvfct-asp-dev-gbo"
 uaId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-02/providers/Microsoft.ManagedIdentity/userAssignedIdentities/iwb-prvfct-id-kvsecretsaccess-dev-gbo"	
 appInsightConnectionString="InstrumentationKey=28998cad-9855-4257-aaed-e8c63065c39a;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/"
 keyVaultUri="https://iwb-prvfct-kv-dev-gbo.vault.azure.net/"
