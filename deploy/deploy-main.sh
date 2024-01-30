@@ -14,8 +14,8 @@ keyVaultName="iwb-prvfct-kv-dev-gbo"
 echo "Set the subscription"
 az account set --subscription $subscripton
 
-# if parameter $1 says recover, then recover the keyvault
-if [ $1 == "recover" ]; then
+# if parameter $1 says --recover-keyvault, then recover the keyvault
+if [ "$1" = "--recover-keyvault" ]; then
     recover-keyvault.sh $keyVaultName
 fi
 
