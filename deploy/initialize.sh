@@ -1,11 +1,18 @@
 # Description: Initialize the Azure environment
 subscripton="199fc2c4-a57c-4049-afbe-e1831f4b2f6e"
 resourcegroup="rg-private-function-gbo-02"
-vnet="vnet-private-function-gbo-02"
+vnet="vnet-private-function-app-gbo-02"
+vnetAddress="192.168.50.0/24"
+subnetpep="subnet-pep"
+pepAddress="192.168.50.0/27"
+subnetapp="subnet-app"
+appAddress="192.168.50.32/27"
+
 vnetVm="vnet-private-function-vm-gbo-02"
-subnetpep="subnet-pep-private-function-gbo-02"
-subnetapp="subnet-app-private-function-gbo-02"
-subnetvm="subnet-vm-private-function-gbo-02"
+vnetVmAddress="192.168.60.0/24"
+subnetvm="subnet-vm"
+vmAddress="192.168.60.0/27"
+
 location="switzerlandnorth"
 vmname="vm-private-function-gbo-02"
 
@@ -20,24 +27,23 @@ az group create --name $resourcegroup --location $location --tags "DeployedBy=Ga
 
 # Create the VNET
 echo "Create the VNET $vnet"
-az network vnet create --resource-group $resourcegroup --name $vnet --address-prefixes '192.168.50.0/24'
+az network vnet create --resource-group $resourcegroup --name $vnet --address-prefixes $vnetAddress
 
 # Create the subnet for the PEP
 echo "Create the subnet $subnetpep"
-az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet --name $subnetpep --address-prefixes '192.168.50.0/27'
+az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet --name $subnetpep --address-prefixes $pepAddress
 
 # Create the subnet for the APP
 echo "Create the subnet $subnetapp"
-az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet --name $subnetapp --address-prefixes '192.168.50.32/27' --delegations 'Microsoft.Web/serverFarms'
+az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet --name $subnetapp --address-prefixes $appAddress --delegations 'Microsoft.Web/serverFarms'
 
 # Create the VNet for the VM
 echo "Create the VNET $vnetVm"
-az network vnet create --resource-group $resourcegroup --name $vnetVm --address-prefixes '192.168.60.0/24'
+az network vnet create --resource-group $resourcegroup --name $vnetVm --address-prefixes $vnetVmAddress
 
 # Create the subnet for the VM
 echo "Create the subnet $subnetvm"
-az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnetVm --name $subnetvm --address-prefixes '192.168.60.128/27'
-
+az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnetVm --name $subnetvm --address-prefixes $vmAddress
 # Peer the VNETs
 echo "Peer the VNETs"
 az network vnet peering create --resource-group $resourcegroup --name $vnet-to-$vnetVm --vnet-name $vnet --remote-vnet $vnetVm --allow-vnet-access
@@ -84,9 +90,7 @@ vm=$(az vm create --resource-group $resourcegroup --name $vmname --image Ubuntu2
     --admin-username azureuser --generate-ssh-keys --subnet $subnetvm --vnet-name $vnetVm \
     --public-ip-sku Standard --size Standard_B1s \
     --nsg-rule SSH --assign-identity "[system]" \
-    # --ssh-key-values /host-home/.ssh/id_rsa \
     --public-ip-address-dns-name $vmname \
-    # --priority Spot --max-price -1 --eviction-policy Deallocate \
     --output tsv --query name)
 
 hostname=$(az vm show --resource-group $resourcegroup --name $vmname --show-details --query publicIps -o tsv)
