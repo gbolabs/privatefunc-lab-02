@@ -2,12 +2,7 @@
 
 # set the subscription
 echo "Set the subscription"
-az account set --subscription $subscripton
-
-# create the resource-group
-
-echo "Create the resource-group"
-az group create --name $resourcegroup --location $location --tags "DeployedBy=Gautier Boder, DeployedFrom=Azure CLI"
+az account set --subscription $subscription
 
 # Create the VNET
 echo "Create the VNET $vnet"

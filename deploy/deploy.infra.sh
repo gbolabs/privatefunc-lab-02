@@ -14,7 +14,7 @@ az deployment group create --resource-group $resourcegroup --template-file iac/i
     environment='dev' \
     serviceConnectionPrincipal='' \
     applicationName='prvfct' \
-    uniqueString='gbo' \
+    uniqueString=$unique \
     keyVaultSku='standard' \
     storageAccountSkuName='Standard_LRS' \
     vnetName=$vnet \

@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Description: Initialize the Azure environment
-subscription="199fc2c4-a57c-4049-afbe-e1831f4b2f6e"
-resourcegroup="rg-private-function-gbo-02"
+. ./.vars
 
 # based on parameter "$1"
 if [ "$1" = "rg" ]; then

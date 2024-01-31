@@ -2,7 +2,7 @@
 
 # set the subscription
 echo "Set the subscription"
-az account set --subscription $subscripton
+az account set --subscription $subscription
 
 # Create a ubuntu VM
 echo "Create a ubuntu VM"

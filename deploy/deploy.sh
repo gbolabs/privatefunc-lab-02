@@ -6,6 +6,7 @@
 # --deploy-functionapp: deploy the function app
 # --deploy-vm: deploy the vm
 # --deploy-all: deploy the entire solution
+# --rg: create the resource group
 # --help: display the help
 
 # if parameter $1 says --recover-keyvault, then recover the keyvault
@@ -34,6 +35,10 @@ elif [ "$1" = "--deploy-all" ]; then
     sh ./deploy.infra.sh
     sh ./deploy.functionapp.sh
     sh ./deploy.vm.sh
+elif [ "$1" = "--rg" ]; then
+    # Create the resource group
+    echo "Creating the resource group..."
+    sh ./create-rg.sh
 elif [ "$1" = "--help" ]; then
     # Display help information
     echo "Available parameters:"
@@ -43,6 +48,7 @@ elif [ "$1" = "--help" ]; then
     echo "--deploy-functionapp: deploy the function app"
     echo "--deploy-vm: deploy the vm"
     echo "--deploy-all: deploy the entire solution"
+    echo "--rg: create the resource group"
     echo "--help: display the help"
 else
     echo "Invalid parameter. Use --help to see the available options."
