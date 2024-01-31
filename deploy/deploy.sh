@@ -59,18 +59,3 @@ elif [ "$1" = "--help" ]; then
 else
     echo "Invalid parameter. Use --help to see the available options."
 fi
-
-elif [ "$1" = "--help" ]; then
-    # Display help information
-    echo "Available parameters:"
-    echo "--recover-keyvault: recover the keyvault"
-    echo "--cleanup: cleanup the resource group"
-    echo "--deploy-infra: deploy the infrastructure"
-    echo "--deploy-functionapp: deploy the function app"
-    echo "--deploy-vm: deploy the vm"
-    echo "--deploy-all: deploy the entire solution"
-    echo "--rg: create the resource group"
-    echo "--help: display the help"
-else
-    echo "Invalid parameter. Use --help to see the available options."
-fi

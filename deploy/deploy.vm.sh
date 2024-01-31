@@ -1,4 +1,4 @@
-. ./.vars
+. ./env/variables.sh
 
 # set the subscription
 echo "Set the subscription"

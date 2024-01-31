@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./.vars
+. ./env/variables.sh
 
 # based on parameter "$1"
 if [ "$1" = "rg" ]; then

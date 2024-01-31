@@ -1,5 +1,5 @@
-# Integrate variables from .vars file
-. ./.vars
+# Integrate variables from env/variables.sh file
+. ./env/variables.sh
 
 # Set the subscription
 az account set --subscription $subscription
