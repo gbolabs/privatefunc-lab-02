@@ -11,12 +11,12 @@ deploymentName="deploy-funcapp-$uniqueString"
 set the right values here below
 exit 1
 
-appServicePlanId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-02/providers/Microsoft.Web/serverFarms/iwb-prvfct-asp-dev-gbo"
-uaId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-02/providers/Microsoft.ManagedIdentity/userAssignedIdentities/iwb-prvfct-id-kvsecretsaccess-dev-gbo"	
-appInsightConnectionString="InstrumentationKey=28998cad-9855-4257-aaed-e8c63065c39a;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/"
-keyVaultUri="https://iwb-prvfct-kv-dev-gbo.vault.azure.net/"
-storageAccountName="iwbprvfctsadevgbo"
-appFuncPrivateDnsZoneId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-02/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"
+appServicePlanId=""
+uaId=""
+appInsightConnectionString=""
+keyVaultUri=""
+storageAccountName=""
+appFuncPrivateDnsZoneId=""
 
 # deploy function app
 az deployment group create --resource-group $resourcegroup --template-file iac/functionapp.bicep --name deploy-functionapp \
