@@ -55,7 +55,7 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
       minimumElasticInstanceCount: minimumElasticInstanceCount != -1 ? minimumElasticInstanceCount : null
       use32BitWorkerProcess: use32BitWorkerProcess
       functionAppScaleLimit: functionAppScaleLimit != -1 ? functionAppScaleLimit : null
-      functionsRuntimeScaleMonitoringEnabled: isPublic ? false : true
+      functionsRuntimeScaleMonitoringEnabled: false
       cors: {
         allowedOrigins: union([ 'https://portal.azure.com', 'https://ms.portal.azure.com' ], allowedOrigins)
       }
