@@ -30,4 +30,7 @@ az deployment group create --resource-group $resourcegroup --template-file iac/i
 
 # retrieve the output of the deployment
 echo "Retrieve the output of the deployment"
-az deployment group show --resource-group $resourcegroup --name $deploymentName --query properties.outputs --output table
+
+json=$(az deployment group show --name $deploymentName --resource-group $resourcegroup --query "properties.outputs" | jq 'to_entries | map({name: .key, value: .value.value})')
+
+echo $json | jq
