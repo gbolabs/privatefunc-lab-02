@@ -8,9 +8,9 @@ az account set --subscription $subscription
 uniqueString=$(openssl rand -hex 3)
 deploymentName="deploy-infra-$uniqueString"
 
-kvPrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.vaultcore.azure.net" --query "id" --output tsv)
-storageBlobPrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.blob.core.windows.net" --query "id" --output tsv)
-storageFilePrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.file.core.windows.net" --query "id" --output tsv)
+kvPrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.vaultcore.azure.net" --resource-group $resourcegroup --query "id" --output tsv)
+storageBlobPrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.blob.core.windows.net" --resource-group $resourcegroup --query "id" --output tsv)
+storageFilePrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.file.core.windows.net" --resource-group $resourcegroup --query "id" --output tsv)
 
 # deploy infarstructure
 az deployment group create --resource-group $resourcegroup --template-file iac/infrastructure.bicep --name $deploymentName \
