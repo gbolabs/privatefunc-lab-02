@@ -10,7 +10,7 @@
 
 # if parameter $1 says --recover-keyvault, then recover the keyvault
 if [ "$1" = "--recover-keyvault" ]; then
-    sh ./recover-keyvault.sh $subscription $keyVaultName
+    sh ./recover-keyvault.sh
 elif [ "$1" = "--cleanup" ]; then
     # Handle cleanup logic here
     echo "Performing cleanup..."
@@ -25,11 +25,15 @@ elif [ "$1" = "--deploy-functionapp" ]; then
 elif [ "$1" = "--deploy-vm" ]; then
     # Handle VM deployment logic here
     echo "Deploying VM..."
+    sh ./deploy.vm.sh
 elif [ "$1" = "--deploy-all" ]; then
     # Handle deployment of the entire solution logic here
     echo "Deploying the entire solution..."
+    sh ./deploy.network.sh
+    sh ./recover-keyvault.sh
     sh ./deploy.infra.sh
     sh ./deploy.functionapp.sh
+    sh ./deploy.vm.sh
 elif [ "$1" = "--help" ]; then
     # Display help information
     echo "Available parameters:"

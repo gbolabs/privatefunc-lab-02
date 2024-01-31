@@ -1,10 +1,9 @@
-# $1 is the subscription id
-# $2 is the ketvault name to recover
+. ./.vars
 
 # set the subscription
 echo "Set the subscription"
-az account set --subscription $1
+az account set --subscription $subscription
 
 # recover the keyvault
-echo "Recover the keyvault $2"
-az keyvault recover --name $2
+echo "Recover the keyvault $keyVaultName"
+az keyvault recover --name $keyVaultName

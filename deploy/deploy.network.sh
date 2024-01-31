@@ -1,20 +1,4 @@
-# Description: Initialize the Azure environment
-subscripton="199fc2c4-a57c-4049-afbe-e1831f4b2f6e"
-resourcegroup="rg-private-function-gbo-02"
-vnet="vnet-private-function-app-gbo-02"
-vnetAddress="192.168.50.0/24"
-subnetpep="subnet-pep"
-pepAddress="192.168.50.0/27"
-subnetapp="subnet-app"
-appAddress="192.168.50.32/27"
-
-vnetVm="vnet-private-function-vm-gbo-02"
-vnetVmAddress="192.168.60.0/24"
-subnetvm="subnet-vm"
-vmAddress="192.168.60.0/27"
-
-location="switzerlandnorth"
-vmname="vm-private-function-gbo-02"
+. ./.vars
 
 # set the subscription
 echo "Set the subscription"
@@ -83,16 +67,3 @@ az network private-dns link vnet create --resource-group $resourcegroup --zone-n
 echo "Link VNET $vnet to privatelink.vaultcore.azure.net"
 az network private-dns link vnet create --resource-group $resourcegroup --zone-name privatelink.vaultcore.azure.net \
     --name link-$vnet-vault --virtual-network $vnet --registration-enabled false
-
-# Create a ubuntu VM
-echo "Create a ubuntu VM"
-vm=$(az vm create --resource-group $resourcegroup --name $vmname --image Ubuntu2204 \
-    --admin-username azureuser --generate-ssh-keys --subnet $subnetvm --vnet-name $vnetVm \
-    --public-ip-sku Standard --size Standard_B1s \
-    --nsg-rule SSH --assign-identity "[system]" \
-    --public-ip-address-dns-name $vmname \
-    --output tsv --query name)
-
-hostname=$(az vm show --resource-group $resourcegroup --name $vmname --show-details --query publicIps -o tsv)
-
-echo "VM: $vm / $hostname"
