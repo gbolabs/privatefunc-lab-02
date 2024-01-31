@@ -18,6 +18,9 @@ appFuncPrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.a
 uniqueString=$(openssl rand -hex 3)
 deploymentName="deploy-infra-$uniqueString"
 
+# Enable internet access to the storage account
+az storage account update --name $storageAccountName --resource-group $resourcegroup --default-action Allow --public-network-access Enabled
+
 # deploy function app
 az deployment group create --resource-group $resourcegroup --template-file iac/functionapp.bicep --name $deploymentName \
     --parameters location=$location \
@@ -37,3 +40,6 @@ az deployment group create --resource-group $resourcegroup --template-file iac/f
     keyVaultName="$keyVaultName" \
     appFuncPrivateDnsZoneId="$appFuncPrivateDnsZoneId" \
     storageAccountName="$storageAccountName"
+
+# Disable internet access to the storage account
+az storage account update --name $storageAccountName --resource-group $resourcegroup --default-action Deny --public-network-access Disabled
