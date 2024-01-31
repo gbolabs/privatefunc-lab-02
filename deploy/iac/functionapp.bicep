@@ -26,7 +26,7 @@ param endpointSubnetName string
 param appSubnetName string
 
 param appServicePlanId string
-param applicationInsightsConnectionString string
+param applicationInsightsResourceId string
 param keyVaultUri string
 param keyVaultName string
 @description('Used to register keyvault private endpoint avoiding to create multiple private dns zone for all the keyvaults')
@@ -51,7 +51,7 @@ module function 'modules/create-functions.bicep' = {
     isPublic: false
     location: location
     appServicePlanId: appServicePlanId
-    appInsightsConnectionString: applicationInsightsConnectionString
+    appInsightsConnectionString: appInsightsRes.properties.ConnectionString
     alwaysOn: false
     keyVaultUri: keyVaultUri
     name: functionAppName
@@ -111,6 +111,15 @@ resource appSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-02-01' existi
 }
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
   name: storageAccountName
+}
+
+var appiResourceIdComponents = split(applicationInsightsResourceId, '/')
+var appiSubscriptionId = appiResourceIdComponents[2]
+var appiResourceGroupName = appiResourceIdComponents[4]
+var appiResourceName = last(appiResourceIdComponents)
+resource appInsightsRes 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: appiResourceName
+  scope: resourceGroup(appiSubscriptionId, appiResourceGroupName)
 }
 
 // Outputs
