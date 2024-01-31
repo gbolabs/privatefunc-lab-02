@@ -6,6 +6,7 @@
 # --deploy-functionapp: deploy the function app
 # --deploy-vm: deploy the vm
 # --deploy-all: deploy the entire solution
+# --deploy-network: deploy the network
 # --rg: create the resource group
 # --help: display the help
 
@@ -35,10 +36,30 @@ elif [ "$1" = "--deploy-all" ]; then
     sh ./deploy.infra.sh
     sh ./deploy.functionapp.sh
     sh ./deploy.vm.sh
+elif [ "$1" = "--deploy-network" ]; then
+    # Handle network deployment logic here
+    echo "Deploying network..."
+    sh ./deploy.network.sh
 elif [ "$1" = "--rg" ]; then
     # Create the resource group
     echo "Creating the resource group..."
     sh ./create-rg.sh
+elif [ "$1" = "--help" ]; then
+    # Display help information
+    echo "Available parameters:"
+    echo "--recover-keyvault: recover the keyvault"
+    echo "--cleanup: cleanup the resource group"
+    echo "--deploy-infra: deploy the infrastructure"
+    echo "--deploy-functionapp: deploy the function app"
+    echo "--deploy-vm: deploy the vm"
+    echo "--deploy-all: deploy the entire solution"
+    echo "--deploy-network: deploy the network"
+    echo "--rg: create the resource group"
+    echo "--help: display the help"
+else
+    echo "Invalid parameter. Use --help to see the available options."
+fi
+
 elif [ "$1" = "--help" ]; then
     # Display help information
     echo "Available parameters:"
