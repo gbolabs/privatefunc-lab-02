@@ -8,18 +8,18 @@ az account set --subscription $subscription
 uniqueString=$(openssl rand -hex 3)
 deploymentName="deploy-funcapp-$uniqueString"
 
-set the right values here below
-exit 1
+appServicePlanId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-98a/providers/Microsoft.Web/serverfarms/gbl-prvfct-asp-dev-98a"
+uaId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-98a/providers/Microsoft.ManagedIdentity/userAssignedIdentities/gbl-prvfct-id-kvsecretsaccess-dev-98a"
+applicationInsightsResourceId="/subscriptions/199fc2c4-a57c-4049-afbe-e1831f4b2f6e/resourceGroups/rg-private-function-gbo-98a/providers/Microsoft.Insights/components/gbl-prvfct-appi-dev-98a"
+keyVaultUri="https://gbl-prvfct-kv-dev-98a.vault.azure.net/"
+storageAccountName="gblprvfctsadev98a"
+appFuncPrivateDnsZoneId=$(az network private-dns zone show --name "privatelink.azurewebsites.net" --resource-group $resourcegroup --query "id" --output tsv)
 
-appServicePlanId=""
-uaId=""
-appInsightConnectionString=""
-keyVaultUri=""
-storageAccountName=""
-appFuncPrivateDnsZoneId=""
+uniqueString=$(openssl rand -hex 3)
+deploymentName="deploy-infra-$uniqueString"
 
 # deploy function app
-az deployment group create --resource-group $resourcegroup --template-file iac/functionapp.bicep --name deploy-functionapp \
+az deployment group create --resource-group $resourcegroup --template-file iac/functionapp.bicep --name $deploymentName \
     --parameters location=$location \
     environment='dev' \
     applicationName='prvfct' \
@@ -32,7 +32,7 @@ az deployment group create --resource-group $resourcegroup --template-file iac/f
     endpointSubnetName=$subnetpep \
     appSubnetName=$subnetapp \
     appServicePlanId="$appServicePlanId" \
-    applicationInsightsConnectionString="$appInsightConnectionString" \
+    applicationInsightsResourceId="$applicationInsightsResourceId" \
     keyVaultUri="$keyVaultUri" \
     keyVaultName="$keyVaultName" \
     appFuncPrivateDnsZoneId="$appFuncPrivateDnsZoneId" \
