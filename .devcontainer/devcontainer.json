@@ -3,7 +3,8 @@
 {
 	"name": "Azure CLI",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	// "image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"dockerFile": "Dockerfile",
 	"features": {
 		"ghcr.io/devcontainers/features/azure-cli:1": {
 			"installBicep": true,
@@ -31,7 +32,8 @@
 	,"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-azuretools.vscode-bicep"
+				"ms-azuretools.vscode-bicep",
+				"ms-azuretools.vscode-docker"
 			]
 			,"settings": {
 			}
