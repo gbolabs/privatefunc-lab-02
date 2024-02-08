@@ -34,9 +34,9 @@ var defaults = loadJsonContent('common/defaults.bicep.json')
 var mwbhCommon = loadJsonContent('common/mwbh-common.bicep.json')
 
 // Networking
-// eg. iwb-mwbh-vnet-dev-g4m
+// eg. gbl-mwbh-vnet-dev-g4m
 var vnetName = format(namingConvention.namingPatterns.virtualNetwork, applicationName, environment, uniqueString)
-// eg. iwb-mwbh-snet-dev-002
+// eg. gbl-mwbh-snet-dev-002
 var appSubnetName = format(namingConvention.namingPatterns.subnet, applicationName, environment, mwbhCommon.networking.subnet.app.index, uniqueString)
 var endpointSubnetName = format(namingConvention.namingPatterns.subnet, applicationName, environment, mwbhCommon.networking.subnet.endpoint.index, uniqueString)
 
@@ -44,7 +44,7 @@ var endpointSubnetName = format(namingConvention.namingPatterns.subnet, applicat
 var appFuncPrivateDnsZoneId = format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/privateDnsZones/{2}', mwbhCommon.networking.privateDns.subscriptionId,  mwbhCommon.networking.privateDns.resourceGroup, defaults.privateDnsZoneNames.azurewebsites)
 // Keyvault
 var keyVaultName = format(namingConvention.namingPatterns.keyVault, applicationName, environment, uniqueString)
-// AppServicePlan eg. iwb-mwbh-asp-dev-g4m
+// AppServicePlan eg. gbl-mwbh-asp-dev-g4m
 var serverFarmName = format(namingConvention.namingPatterns.appServicePlan, applicationName, environment, uniqueString)
 // Application Insights
 var appInsightsName = format(namingConvention.namingPatterns.applicationInsights, applicationName, environment, uniqueString)

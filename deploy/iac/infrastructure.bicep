@@ -31,9 +31,9 @@ var defaults = loadJsonContent('common/defaults.bicep.json')
 var mwbhCommon = loadJsonContent('common/mwbh-common.bicep.json')
 
 // Networking
-// eg. iwb-mwbh-vnet-dev-g4m
+// eg. gbl-mwbh-vnet-dev-g4m
 var vnetName = format(namingConvention.namingPatterns.virtualNetwork, applicationName, environment, uniqueString)
-// eg. iwb-mwbh-snet-dev-001
+// eg. gbl-mwbh-snet-dev-001
 var endpointSubnetName = format(namingConvention.namingPatterns.subnet, applicationName, environment, mwbhCommon.networking.subnet.endpoint.index, uniqueString)
 
 // *********************************************************************************************************************
