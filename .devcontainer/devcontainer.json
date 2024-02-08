@@ -10,10 +10,6 @@
 			"installBicep": true,
 			"version": "latest"
 		}
-		,"ghcr.io/stuartleeks/dev-container-features/azure-cli-persistence": 
-		{
-			"persistFolder": "/home/vscode/.azure"
-		}
 	}
 
 	// Mount ~/.ssh/ if you're using ssh keys.
