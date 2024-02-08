@@ -1,7 +1,11 @@
 // This template deploys the infrastructure resources required to operate the Handle Middleware Functions.
-// ========================================================
+// 
+//
+// ==========================================================================================================================
 
+// ***************************************************************************************************************************
 // Parameters
+// ***************************************************************************************************************************
 param location string = 'westeurope'
 @allowed([
   'sandbox'
@@ -11,40 +15,30 @@ param location string = 'westeurope'
 ])
 param environment string
 param serviceConnectionPrincipal string = ''
-@description('Use to build the resource name according to the naming convention')
 param applicationName string
 param uniqueString string
-param appServiceSku object
-param keyVaultSku string
-param storageAccountSkuName string
 
-// Prerequisites infrastructure parameters
-param vnetName string
-param endpointSubnetName string
-@description('Used to register keyvault private endpoint avoiding to create multiple private dns zone for all the keyvaults')
-param kvPrivateDnsZoneId string
-
-@secure()
 @description('Object Id of the MS Entra ID Group used to grant management of the keyvault secrets')
 param devEntraIdGroupIdForKvAccessPolicies string = ''
 
-@description('Used to register storage account private endpoint avoiding to create multiple private dns zone for all the storage accounts')
-param storageBlobPrivateDnsZoneId string
-@description('Used to register storage account private endpoint avoiding to create multiple private dns zone for all the storage accounts')
-param storageFilePrivateDnsZoneId string
-
-// Driving output parameters
-param appInsightsConnectionStringSecretName string = 'AppInsightsConnectionString'
-param appInsightsInstrumentationKeySecretName string = 'AppInsightsInstrumentationKey'
+// *********************************************************************************************************************
+// Variables
+// *********************************************************************************************************************
 
 // Integrates naming convention
 var namingConvention = loadJsonContent('common/naming-rules.bicep.json')
 var defaults = loadJsonContent('common/defaults.bicep.json')
+var mwbhCommon = loadJsonContent('common/mwbh-common.bicep.json')
 
-// Explicitly define the scope to be at resource group level
-targetScope = 'resourceGroup'
+// Networking
+// eg. iwb-mwbh-vnet-dev-g4m
+var vnetName = format(namingConvention.namingPatterns.virtualNetwork, applicationName, environment, uniqueString)
+// eg. iwb-mwbh-snet-dev-001
+var endpointSubnetName = format(namingConvention.namingPatterns.subnet, applicationName, environment, mwbhCommon.networking.subnet.endpoint.index, uniqueString)
 
+// *********************************************************************************************************************
 // Resources
+// *********************************************************************************************************************
 var managedIdentityName = format(namingConvention.namingPatterns.managedIdentity, applicationName,'kvsecretsaccess', environment, uniqueString)
 module managedIdentityModule 'modules/create-userAssignedManagedId.bicep' = {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'managedIdentity-kvsecrets', environment, uniqueString)
@@ -62,11 +56,11 @@ module keyVaultModule 'modules/create-keyvault.bicep' = {
     location: location
     kvName: keyVaultName
     privateOnly: true
-    skuName: keyVaultSku == '' ? defaults.skus.keyVaultSku : keyVaultSku
+    skuName: defaults.skus.keyVaultSku
   }
 }
 
-module keyVaultAccessPolicyForPipeline 'modules/add-keyVaultAccessPolicy.bicep' = {
+module keyVaultAccessPolicyForPipeline 'modules/add-keyVaultAccessPolicy.bicep' = if(serviceConnectionPrincipal != '') {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForPipeline', environment, uniqueString)
   params: {
     kvName: keyVaultModule.outputs.kvName
@@ -89,7 +83,7 @@ module keyVaultAccessPolicyForUAMgdId 'modules/add-keyVaultAccessPolicy.bicep' =
   }
 }
 
-module keyVaultAccessPolicyForDevEntraIDGroup 'modules/add-keyVaultAccessPolicy.bicep' = {
+module keyVaultAccessPolicyForDevEntraIDGroup 'modules/add-keyVaultAccessPolicy.bicep' = if (length(devEntraIdGroupIdForKvAccessPolicies) > 0) {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForDevEntraIDGroup', environment, uniqueString)
   params: {
     kvName: keyVaultModule.outputs.kvName
@@ -106,7 +100,7 @@ module makeKeyVaultPrivateModule 'modules/make-private.bicep' = {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'makeKeyVaultPrivate', environment, uniqueString)
   params: {
     location: location
-    dnsId: kvPrivateDnsZoneId
+    dnsId: kvPdns.id
     pEdnpointName: pepKvName
     pLinkGroupId: 'vault'
     pLinkServiceId: keyVaultModule.outputs.kvId
@@ -124,8 +118,8 @@ module lawAppiModule 'modules/create-lawappi.bicep' = {
     appInsightsName: appInsightsName
     keyVaultName: keyVaultModule.outputs.kvName
     logAnalyticsName: logAnalyticsWorkspaceName
-    appInsightInstrumentationKeySecretName: appInsightsInstrumentationKeySecretName
-    appInsightsConnectionStringSecretName: appInsightsConnectionStringSecretName
+    appInsightInstrumentationKeySecretName: ''
+    appInsightsConnectionStringSecretName: ''
   }
 }
 
@@ -135,7 +129,7 @@ module appServicePlanModule 'modules/create-appserviceplan.bicep' = {
   params: {
     location: location
     name: appServicePlanName
-    sku: appServiceSku == {} ? defaults.skus.appServicePlan : appServiceSku
+    sku: environment == 'prod' ? defaults.skus.appServicePlan.prod : defaults.skus.appServicePlan.devqa
     kind: '' // let empty for Elastic Premium
     reserved: false
   }
@@ -147,7 +141,7 @@ module storageAccountPlanModule 'modules/create-storageaccount.bicep' = {
   params: {
     location: location
     name: storageAccountName
-    skuName: storageAccountSkuName
+    skuName: environment == 'prod' ? defaults.skus.storageAccount.prod.name : defaults.skus.storageAccount.devqa.name
     kind: 'StorageV2'
     accessTier: 'Hot'
   }
@@ -159,7 +153,7 @@ module makeStorageAccountPrivate 'modules/make-private.bicep' = {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'pep-sa-blob', environment, uniqueString)
   params: {
     location: location
-    dnsId: storageBlobPrivateDnsZoneId
+    dnsId: blobPdns.id
     pEdnpointName: stoPendptName
     pLinkGroupId: 'blob'
     pLinkServiceId: storageAccountPlanModule.outputs.storageAccountId
@@ -174,7 +168,7 @@ module makeStorageAccountFilePrivate 'modules/make-private.bicep' = {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'pep-sa-file', environment, uniqueString)
   params: {
     location: location
-    dnsId: storageFilePrivateDnsZoneId
+    dnsId: filePdns.id
     pEdnpointName: stoFilePendptName
     pLinkGroupId: 'file'
     pLinkServiceId: storageAccountPlanModule.outputs.storageAccountId
@@ -183,7 +177,25 @@ module makeStorageAccountFilePrivate 'modules/make-private.bicep' = {
   }
 }
 
+// *********************************************************************************************************************
+// Existing resources
+// *********************************************************************************************************************
+resource blobPdns 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  name: defaults.privateDnsZoneNames.blob
+  scope: resourceGroup(mwbhCommon.networking.privateDns.subscriptionId,mwbhCommon.networking.privateDns.resourceGroup)
+}
+resource filePdns 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  name: defaults.privateDnsZoneNames.file
+  scope: resourceGroup(mwbhCommon.networking.privateDns.subscriptionId,mwbhCommon.networking.privateDns.resourceGroup)
+}
+resource kvPdns 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+  name: defaults.privateDnsZoneNames.vault
+  scope: resourceGroup(mwbhCommon.networking.privateDns.subscriptionId,mwbhCommon.networking.privateDns.resourceGroup)
+}
+
+// *********************************************************************************************************************
 // Outputs
+// *********************************************************************************************************************
 output applicationInsightsResourceId string = lawAppiModule.outputs.appInsightsId
 output storageAccountId string = storageAccountPlanModule.outputs.storageAccountId
 output storageAccountName string = storageAccountPlanModule.outputs.storageAccountName

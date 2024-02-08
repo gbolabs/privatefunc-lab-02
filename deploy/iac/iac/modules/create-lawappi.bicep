@@ -34,14 +34,15 @@ resource appInsightsRes 'Microsoft.Insights/components@2020-02-02' = {
     WorkspaceResourceId: logAnalyticsWorkspace.id
   }
 }
-resource appInsightConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01'= {
+
+resource appInsightConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = if(length(appInsightsConnectionStringSecretName) > 0) {
   parent: keyVaultRes
   name: appInsightsConnectionStringSecretName
   properties: {
     value: appInsightsRes.properties.ConnectionString
   }
 }
-resource appInsightInstrumentationKey 'Microsoft.KeyVault/vaults/secrets@2023-02-01'= {
+resource appInsightInstrumentationKey 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = if(length(appInsightInstrumentationKeySecretName) > 0) {
   parent: keyVaultRes
   name: appInsightInstrumentationKeySecretName
   properties: {

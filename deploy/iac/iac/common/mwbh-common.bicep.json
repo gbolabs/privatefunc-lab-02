@@ -1,0 +1,17 @@
+{
+    "networking":{
+        "subnet":{
+            "endpoint":{
+                "index": "001"
+            },
+            "app":{
+                "index": "002"
+            }
+        },
+        "privateDns":
+        {
+            "subscriptionId": "00000000-0000-0000-0000-000000000000",
+            "resourceGroup": "gbl.network"
+        }
+    }
+}
