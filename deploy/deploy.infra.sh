@@ -14,7 +14,7 @@ storageFilePrivateDnsZoneId=$(az network private-dns zone show --name "privateli
 
 # validate the bicep file
 echo "Validate the bicep file"
-az deployment group validate --debug --resource-group $resourcegroup --template-file iac/infrastructure.bicep \
+az deployment group validate --resource-group $resourcegroup --template-file iac/infrastructure.bicep \
     --parameters location=$location \
     environment='dev' \
     serviceConnectionPrincipal='' \
