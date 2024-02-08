@@ -10,6 +10,8 @@
         "modules": "gbl-{0}-modules-{1}-{2}",
         "privateEndpoint": "gbl-pep-{0}-{1}-{2}",
         "storageAccount": "gbl{0}sa{1}{2}",
-        "managedIdentity": "gbl-{0}-id-{1}-{2}-{3}"
+        "managedIdentity": "gbl-{0}-id-{1}-{2}-{3}",
+        "virtualNetwork": "gbl-{0}-vnet-{1}-{2}",
+        "subnet": "gbl-{0}-snet-{1}-{2}"
     }
 }

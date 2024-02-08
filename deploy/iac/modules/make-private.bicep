@@ -44,7 +44,7 @@ resource kvPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZon
   properties: {
     privateDnsZoneConfigs: [
       {
-        name: 'config'
+        name: 'default'
         properties: {
           privateDnsZoneId: dnsId
         }
