@@ -116,10 +116,7 @@ module lawAppiModule 'modules/create-lawappi.bicep' = {
   params: {
     location: location
     appInsightsName: appInsightsName
-    keyVaultName: keyVaultModule.outputs.kvName
     logAnalyticsName: logAnalyticsWorkspaceName
-    appInsightInstrumentationKeySecretName: ''
-    appInsightsConnectionStringSecretName: ''
   }
 }
 
