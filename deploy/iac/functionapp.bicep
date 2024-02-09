@@ -41,7 +41,7 @@ var appSubnetName = format(namingConvention.namingPatterns.subnet, applicationNa
 var endpointSubnetName = format(namingConvention.namingPatterns.subnet, applicationName, environment, mwbhCommon.networking.subnet.endpoint.index, uniqueString)
 
 // Private DNS Zone
-var appFuncPrivateDnsZoneId = format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/privateDnsZones/{2}', mwbhCommon.networking.privateDns.subscriptionId,  mwbhCommon.networking.privateDns.resourceGroup, defaults.privateDnsZoneNames.azurewebsites)
+var appFuncPrivateDnsZoneId = format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/privateDnsZones/{2}', mwbhCommon.networking.privateDns.subscriptionId, mwbhCommon.networking.privateDns.resourceGroup, defaults.privateDnsZoneNames.azurewebsites)
 // Keyvault
 var keyVaultName = format(namingConvention.namingPatterns.keyVault, applicationName, environment, uniqueString)
 // AppServicePlan eg. gbl-mwbh-asp-dev-g4m
@@ -78,6 +78,7 @@ module function 'modules/create-functions.bicep' = {
     kind: 'functionapp'
   }
 }
+
 module makeFuncAppPrivate 'modules/make-private.bicep' = {
   name: format(namingConvention.namingPatterns.modules, applicationName, 'makeFuncAppPrivate', environment, uniqueString)
   params: {
@@ -90,6 +91,70 @@ module makeFuncAppPrivate 'modules/make-private.bicep' = {
     vnetName: vnetName
   }
 }
+
+// =============================================
+// Create slots and their file shares and private endpoints
+// =============================================
+var slots = [
+  { name: 'blue' }
+  { name: 'green' }
+]
+module slotFileShares 'modules/create-fileShare.bicep' = [for slot in slots: {
+  name: '${slot.name}-slot-content-fileShare'
+  params: {
+    fileShareName: format('slot-{0}-content', slot.name)
+    storageAccountName: storage.name
+  }
+}]
+
+var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=${az.environment().suffixes.storage}'
+module appServiceSlots 'modules/create-appserviceslot.bicep' = [for (slot, index) in slots: {
+  name: format('module-slot-{0}-{1}', functionAppName, slot.name)
+  params: {
+    location: location
+    functionSlotName: slot.name
+    parentSiteName: function.outputs.name
+    appSettings: {
+      // ATTENTION! must be in sync with the function module
+      AzureWebJobsStorage: storageConnectionString
+      FUNCTIONS_EXTENSION_VERSION: '~4'
+      FUNCTIONS_WORKER_RUNTIME: runtimeName
+      WEBSITE_CONTENTAZUREFILECONNECTIONSTRING: storageConnectionString
+      WEBSITE_CONTENTSHARE: slotFileShares[index].outputs.fileShareName
+      WEBSITE_VNET_ROUTE_ALL: '1'
+      WEBSITE_CONTENTOVERVNET: '1'
+      WEBSITE_OVERRIDE_STICKY_DIAGNOSTICS_SETTINGS: 0
+    }
+    kind: 'functionapp'
+    linuxFxVersion: '' // not used, value is required only for linux app service
+    appInsightsConnectionString: appInsightsRes.properties.ConnectionString
+    keyVaultUri: keyVault.properties.vaultUri
+    userAssignedIdentity: userAssignedId.id
+  }
+  dependsOn: [
+    function
+    slotFileShares[index]
+  ]
+}]
+
+module makeSlotPrivate 'modules/make-private.bicep' = [for (slot, index) in slots: {
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'make${slot.name}SlotPrivate', environment, uniqueString)
+  params: {
+    location: location
+    dnsId: appFuncPrivateDnsZoneId
+    pEdnpointName: format(namingConvention.namingPatterns.privateEndpoint, format('{0}-slot-{1}-{2}', applicationName, functionName, slot.name), environment, uniqueString)
+    pLinkGroupId: 'sites-${slot.name}'
+    pLinkServiceId: function.outputs.id
+    subnetName: endpointSubnetName
+    vnetName: vnetName
+  }
+  dependsOn: [
+    function
+    slotFileShares[index]
+    appServiceSlots[index]
+  ]
+}]
+// =============================================
 
 // Permissions to keyvault
 module keyVaultAccessPolicyForFuncApp 'modules/add-keyVaultAccessPolicy.bicep' = {
