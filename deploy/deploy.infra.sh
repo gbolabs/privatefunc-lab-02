@@ -23,7 +23,7 @@ az deployment group validate --resource-group $resourcegroup --template-file iac
     devEntraIdGroupIdForKvAccessPolicies=$resourceAdminId
 
 # deploy infarstructure
-az deployment group create --resource-group $resourcegroup --template-file iac/infrastructure.bicep \ 
+az deployment group create --resource-group $resourcegroup --template-file iac/infrastructure.bicep \
     --name $deploymentName \
     --parameters location=$location \
     environment='dev' \
