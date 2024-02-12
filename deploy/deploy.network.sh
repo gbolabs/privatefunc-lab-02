@@ -6,7 +6,7 @@ az account set --subscription $subscription
 
 # Create the VNET
 echo "Create the VNET $vnet"
-az network vnet create --resource-group $resourcegroup --name $vnet --address-prefixes $vnetAddress
+az network vnet create --location $location --resource-group $resourcegroup --name $vnet --address-prefixes $vnetAddress
 
 # Create the subnet for the PEP
 echo "Create the subnet $subnetpep"
@@ -18,7 +18,7 @@ az network vnet subnet create --resource-group $resourcegroup --vnet-name $vnet 
 
 # Create the VNet for the VM
 echo "Create the VNET $vnetVm"
-az network vnet create --resource-group $resourcegroup --name $vnetVm --address-prefixes $vnetVmAddress
+az network vnet create --location $location --resource-group $resourcegroup --name $vnetVm --address-prefixes $vnetVmAddress
 
 # Create the subnet for the VM
 echo "Create the subnet $subnetvm"

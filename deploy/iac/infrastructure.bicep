@@ -17,6 +17,12 @@ param environment string
 param serviceConnectionPrincipal string = ''
 param applicationName string
 param uniqueString string
+param buildNumber string = ''
+
+@description('Subscription of the Private DNS Zones')
+param privateDnsSubscriptionId string = ''
+@description('Resource Group of the Private DNS Zones')
+param privateDnsResourceGroup string = ''
 
 @description('Object Id of the MS Entra ID Group used to grant management of the keyvault secrets')
 param devEntraIdGroupIdForKvAccessPolicies string = ''
@@ -39,9 +45,9 @@ var endpointSubnetName = format(namingConvention.namingPatterns.subnet, applicat
 // *********************************************************************************************************************
 // Resources
 // *********************************************************************************************************************
-var managedIdentityName = format(namingConvention.namingPatterns.managedIdentity, applicationName,'kvsecretsaccess', environment, uniqueString)
+var managedIdentityName = format(namingConvention.namingPatterns.managedIdentity, applicationName, 'kvsecretsaccess', environment, uniqueString)
 module managedIdentityModule 'modules/create-userAssignedManagedId.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'managedIdentity-kvsecrets', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'managedIdentity-kvsecrets', environment, buildNumber)
   params: {
     location: location
     managedIdName: managedIdentityName
@@ -51,7 +57,7 @@ module managedIdentityModule 'modules/create-userAssignedManagedId.bicep' = {
 var keyVaultName = format(namingConvention.namingPatterns.keyVault, applicationName, environment, uniqueString)
 var pepKvName = format(namingConvention.namingPatterns.privateEndpoint, format('{0}-keyvault', applicationName), environment, uniqueString)
 module keyVaultModule 'modules/create-keyvault.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyvault', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyvault', environment, buildNumber)
   params: {
     location: location
     kvName: keyVaultName
@@ -60,8 +66,8 @@ module keyVaultModule 'modules/create-keyvault.bicep' = {
   }
 }
 
-module keyVaultAccessPolicyForPipeline 'modules/add-keyVaultAccessPolicy.bicep' = if(serviceConnectionPrincipal != '') {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForPipeline', environment, uniqueString)
+module keyVaultAccessPolicyForPipeline 'modules/add-keyVaultAccessPolicy.bicep' = if (serviceConnectionPrincipal != '') {
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForPipeline', environment, buildNumber)
   params: {
     kvName: keyVaultModule.outputs.kvName
     objectId: serviceConnectionPrincipal
@@ -72,7 +78,7 @@ module keyVaultAccessPolicyForPipeline 'modules/add-keyVaultAccessPolicy.bicep' 
 }
 
 module keyVaultAccessPolicyForUAMgdId 'modules/add-keyVaultAccessPolicy.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForUAMgdId', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForUAMgdId', environment, buildNumber)
   params: {
     kvName: keyVaultModule.outputs.kvName
     objectId: managedIdentityModule.outputs.managedIdentityPrincipalId
@@ -84,7 +90,7 @@ module keyVaultAccessPolicyForUAMgdId 'modules/add-keyVaultAccessPolicy.bicep' =
 }
 
 module keyVaultAccessPolicyForDevEntraIDGroup 'modules/add-keyVaultAccessPolicy.bicep' = if (length(devEntraIdGroupIdForKvAccessPolicies) > 0) {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForDevEntraIDGroup', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForDevEntraIDGroup', environment, buildNumber)
   params: {
     kvName: keyVaultModule.outputs.kvName
     objectId: devEntraIdGroupIdForKvAccessPolicies
@@ -97,7 +103,7 @@ module keyVaultAccessPolicyForDevEntraIDGroup 'modules/add-keyVaultAccessPolicy.
 }
 
 module makeKeyVaultPrivateModule 'modules/make-private.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'makeKeyVaultPrivate', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'makeKeyVaultPrivate', environment, buildNumber)
   params: {
     location: location
     dnsId: kvPdns.id
@@ -112,20 +118,17 @@ module makeKeyVaultPrivateModule 'modules/make-private.bicep' = {
 var logAnalyticsWorkspaceName = format(namingConvention.namingPatterns.logAnalyticsWorkspace, applicationName, environment, uniqueString)
 var appInsightsName = format(namingConvention.namingPatterns.applicationInsights, applicationName, environment, uniqueString)
 module lawAppiModule 'modules/create-lawappi.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'lawAppiModule', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'lawAppiModule', environment, buildNumber)
   params: {
     location: location
     appInsightsName: appInsightsName
-    keyVaultName: keyVaultModule.outputs.kvName
     logAnalyticsName: logAnalyticsWorkspaceName
-    appInsightInstrumentationKeySecretName: ''
-    appInsightsConnectionStringSecretName: ''
   }
 }
 
 var appServicePlanName = format(namingConvention.namingPatterns.appServicePlan, applicationName, environment, uniqueString)
 module appServicePlanModule 'modules/create-appserviceplan.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'appServicePlan', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'appServicePlan', environment, buildNumber)
   params: {
     location: location
     name: appServicePlanName
@@ -137,7 +140,7 @@ module appServicePlanModule 'modules/create-appserviceplan.bicep' = {
 
 var storageAccountName = format(namingConvention.namingPatterns.storageAccount, applicationName, environment, uniqueString)
 module storageAccountPlanModule 'modules/create-storageaccount.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'storageAccount', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'storageAccount', environment, buildNumber)
   params: {
     location: location
     name: storageAccountName
@@ -150,7 +153,7 @@ module storageAccountPlanModule 'modules/create-storageaccount.bicep' = {
 // Blob private endpoint
 var stoPendptName = format(namingConvention.namingPatterns.privateEndpoint, format('{0}-sa-blob', applicationName), environment, uniqueString)
 module makeStorageAccountPrivate 'modules/make-private.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'pep-sa-blob', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'pep-sa-blob', environment, buildNumber)
   params: {
     location: location
     dnsId: blobPdns.id
@@ -165,7 +168,7 @@ module makeStorageAccountPrivate 'modules/make-private.bicep' = {
 // File private endpoint
 var stoFilePendptName = format(namingConvention.namingPatterns.privateEndpoint, format('{0}-sa-file', applicationName), environment, uniqueString)
 module makeStorageAccountFilePrivate 'modules/make-private.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'pep-sa-file', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'pep-sa-file', environment, buildNumber)
   params: {
     location: location
     dnsId: filePdns.id
@@ -180,17 +183,19 @@ module makeStorageAccountFilePrivate 'modules/make-private.bicep' = {
 // *********************************************************************************************************************
 // Existing resources
 // *********************************************************************************************************************
+var pDnsSubscriptionId = privateDnsSubscriptionId == '' ? mwbhCommon.networking.privateDns.subscriptionId : privateDnsSubscriptionId
+var pDnsResourceGroup = privateDnsResourceGroup == '' ? mwbhCommon.networking.privateDns.resourceGroup : privateDnsResourceGroup
 resource blobPdns 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   name: defaults.privateDnsZoneNames.blob
-  scope: resourceGroup(mwbhCommon.networking.privateDns.subscriptionId,mwbhCommon.networking.privateDns.resourceGroup)
+  scope: resourceGroup(pDnsSubscriptionId, pDnsResourceGroup)
 }
 resource filePdns 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   name: defaults.privateDnsZoneNames.file
-  scope: resourceGroup(mwbhCommon.networking.privateDns.subscriptionId,mwbhCommon.networking.privateDns.resourceGroup)
+  scope: resourceGroup(pDnsSubscriptionId, pDnsResourceGroup)
 }
 resource kvPdns 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
   name: defaults.privateDnsZoneNames.vault
-  scope: resourceGroup(mwbhCommon.networking.privateDns.subscriptionId,mwbhCommon.networking.privateDns.resourceGroup)
+  scope: resourceGroup(pDnsSubscriptionId, pDnsResourceGroup)
 }
 
 // *********************************************************************************************************************

@@ -21,25 +21,26 @@ deploymentName="deploy-infra-$uniqueString"
 # Enable internet access to the storage account
 az storage account update --name $storageAccountName --resource-group $resourcegroup --default-action Allow --public-network-access Enabled
 
-# deploy function app
-az deployment group create --resource-group $resourcegroup --template-file iac/functionapp.bicep --name $deploymentName \
+# validate the bicep file
+az deployment group validate --resource-group $resourcegroup --template-file iac/functionapp.bicep \
     --parameters location=$location \
     environment='dev' \
+    uniqueString=$unique \
     applicationName='prvfct' \
     functionName='f1' \
-    uniqueString=$unique \
-    functionUserAssignedManagedIdentity="$uaId" \
     runtimeName='dotnet-isolated' \
-    runtimeVersion='6.0' \
-    vnetName=$vnet \
-    endpointSubnetName=$subnetpep \
-    appSubnetName=$subnetapp \
-    appServicePlanId="$appServicePlanId" \
-    applicationInsightsResourceId="$applicationInsightsResourceId" \
-    keyVaultUri="$keyVaultUri" \
-    keyVaultName="$keyVaultName" \
-    appFuncPrivateDnsZoneId="$appFuncPrivateDnsZoneId" \
-    storageAccountName="$storageAccountName"
+    runtimeVersion='6.0'
+
+# deploy function app
+az deployment group create --resource-group $resourcegroup --template-file iac/functionapp.bicep \
+    --name $deploymentName \
+    --parameters location=$location \
+    environment='dev' \
+    uniqueString=$unique \
+    applicationName='prvfct' \
+    functionName='f1' \
+    runtimeName='dotnet-isolated' \
+    runtimeVersion='6.0'
 
 # Disable internet access to the storage account
 az storage account update --name $storageAccountName --resource-group $resourcegroup --default-action Deny --public-network-access Disabled

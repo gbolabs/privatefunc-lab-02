@@ -1,15 +1,9 @@
+param location string = resourceGroup().location
 param appInsightsName string
 param logAnalyticsName string
-param location string
-param keyVaultName string
-param appInsightsConnectionStringSecretName string
-param appInsightInstrumentationKeySecretName string
-
-// ========================================================
-// Existing resources
-resource keyVaultRes 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: keyVaultName
-}
+param keyVaultName string = ''
+param appInsightsConnectionStringSecretName string = ''
+param appInsightInstrumentationKeySecretName string = ''
 
 // ========================================================
 // Log Analytics Workspace
@@ -35,18 +29,20 @@ resource appInsightsRes 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource appInsightConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = if(length(appInsightsConnectionStringSecretName) > 0) {
-  parent: keyVaultRes
-  name: appInsightsConnectionStringSecretName
-  properties: {
-    value: appInsightsRes.properties.ConnectionString
+module appInsightKey 'create-keyvaultSecret.bicep' = if(!empty(keyVaultName) && !empty(appInsightInstrumentationKeySecretName)) {
+  name: 'appInsightKey'
+  params: {
+    vaultName: keyVaultName
+    secretName: appInsightInstrumentationKeySecretName
+    secretValue: appInsightsRes.properties.InstrumentationKey
   }
 }
-resource appInsightInstrumentationKey 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = if(length(appInsightInstrumentationKeySecretName) > 0) {
-  parent: keyVaultRes
-  name: appInsightInstrumentationKeySecretName
-  properties: {
-    value: appInsightsRes.properties.InstrumentationKey
+module appInsightConnectionString 'create-keyvaultSecret.bicep' = if(!empty(keyVaultName) && !empty(appInsightsConnectionStringSecretName)) {
+  name: 'appInsightConnectionString'
+  params: {
+    vaultName: keyVaultName
+    secretName: appInsightsConnectionStringSecretName
+    secretValue: appInsightsRes.properties.ConnectionString
   }
 }
 
