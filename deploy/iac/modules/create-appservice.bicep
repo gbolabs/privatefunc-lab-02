@@ -47,7 +47,7 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     serverFarmId: appServicePlanId
     siteConfig: {
       linuxFxVersion: contains(kind, 'linux') ? linuxFxVersion : ''
-      netFrameworkVersion: contains(kind, 'linux') ? '' : format('v{0}', runtimeVersion)
+      netFrameworkVersion: contains(kind, 'linux') ? '' : format('v{0}', replace(runtimeVersion, '.0', ''))
       alwaysOn: alwaysOn
       ftpsState: 'Disabled'
       appCommandLine: appCommandLine
@@ -67,9 +67,7 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     type: !empty(userAssignedIdentity) ? 'SystemAssigned, UserAssigned' : managedIdentity ? 'SystemAssigned' : 'None'
     userAssignedIdentities: !empty(userAssignedIdentity) ? {
       '${userAssignedIdentity}': {}
-    } : {
-
-    }
+    } : {}
   }
 
   resource configAppSettings 'config' = {
@@ -101,6 +99,34 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     properties: {
       subnetResourceId: subnetId
       swiftSupported: true
+    }
+  }
+
+  resource accessRestrictions 'config@2023-01-01' = {
+    name: 'web'
+    properties: {
+      publicNetworkAccess: isPublic ? 'Enabled' : 'Disabled'
+      scmIpSecurityRestrictions: isPublic ? [] : [
+        // Default to deny all
+        {
+          action: 'Deny'
+          priority: 2147483647
+          tag: 'Default'
+          ipAddress: 'Any'
+          subnetMask: 'Any'
+        }
+      ]
+      scmIpSecurityRestrictionsUseMain: false
+      ipSecurityRestrictions: isPublic ? [] : [
+        // Default to deny all
+        {
+          action: 'Deny'
+          priority: 2147483647
+          tag: 'Default'
+          ipAddress: 'Any'
+          subnetMask: 'Any'
+        }
+      ]
     }
   }
 }

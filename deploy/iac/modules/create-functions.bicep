@@ -66,7 +66,7 @@ module functions 'create-appservice.bicep' = {
         WEBSITE_CONTENTSHARE: contentFileShareModule.outputs.fileShareName
         WEBSITE_VNET_ROUTE_ALL: isPublic ? '' : '1'
         WEBSITE_CONTENTOVERVNET: isPublic ? '' : '1'
-        WEBSITE_OVERRIDE_STICKY_DIAGNOSTICS_SETTINGS: 0
+        WEBSITE_OVERRIDE_STICKY_DIAGNOSTICS_SETTINGS: 0 // Required when swapping slots on elastic premium plans with protected storage
       })
     clientAffinityEnabled: clientAffinityEnabled
     enableOryxBuild: enableOryxBuild

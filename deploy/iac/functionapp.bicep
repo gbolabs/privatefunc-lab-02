@@ -22,8 +22,14 @@ param applicationName string // eg. mwbh
 param functionName string
 @description('Use to build the name of User Assigned Managed Identity for KeyVault Secrets Access.')
 param kvAccessUaIdNameComponent string = ''
-param runtimeName string = ''
-param runtimeVersion string = ''
+param runtimeName string = 'dotnet-isolated'
+param runtimeVersion string = '6.0'
+
+@description('Subscription of the Private DNS Zones')
+param privateDnsSubscriptionId string = ''
+@description('Resource Group of the Private DNS Zones')
+param privateDnsResourceGroup string = ''
+param buildNumber string = ''
 
 // *********************************************************************************************************************
 // Variables
@@ -41,7 +47,9 @@ var appSubnetName = format(namingConvention.namingPatterns.subnet, applicationNa
 var endpointSubnetName = format(namingConvention.namingPatterns.subnet, applicationName, environment, mwbhCommon.networking.subnet.endpoint.index, uniqueString)
 
 // Private DNS Zone
-var appFuncPrivateDnsZoneId = format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/privateDnsZones/{2}', mwbhCommon.networking.privateDns.subscriptionId, mwbhCommon.networking.privateDns.resourceGroup, defaults.privateDnsZoneNames.azurewebsites)
+var pDnsSubscriptionId = privateDnsSubscriptionId == '' ? mwbhCommon.networking.privateDns.subscriptionId : privateDnsSubscriptionId
+var pDnsResourceGroup = privateDnsResourceGroup == '' ? mwbhCommon.networking.privateDns.resourceGroup : privateDnsResourceGroup
+var appFuncPrivateDnsZoneId = format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/privateDnsZones/{2}', pDnsSubscriptionId, pDnsResourceGroup, defaults.privateDnsZoneNames.azurewebsites)
 // Keyvault
 var keyVaultName = format(namingConvention.namingPatterns.keyVault, applicationName, environment, uniqueString)
 // AppServicePlan eg. gbl-mwbh-asp-dev-g4m
@@ -60,7 +68,7 @@ var uaIdFullName = format(namingConvention.namingPatterns.managedIdentity, appli
 var functionAppName = format(namingConvention.namingPatterns.function, applicationName, functionName, environment, uniqueString)
 var pepFctAppName = format(namingConvention.namingPatterns.privateEndpoint, format('{0}-func-{1}', applicationName, functionName), environment, uniqueString)
 module function 'modules/create-functions.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'function', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'function', environment, buildNumber)
   params: {
     isPublic: false
     location: location
@@ -80,7 +88,7 @@ module function 'modules/create-functions.bicep' = {
 }
 
 module makeFuncAppPrivate 'modules/make-private.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'makeFuncAppPrivate', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'makeFuncAppPrivate', environment, buildNumber)
   params: {
     location: location
     dnsId: appFuncPrivateDnsZoneId
@@ -114,6 +122,11 @@ module appServiceSlots 'modules/create-appserviceslot.bicep' = [for (slot, index
     location: location
     functionSlotName: slot.name
     parentSiteName: function.outputs.name
+    isPublic: false
+    runtimeVersion: runtimeVersion
+    subnetId: appSubnet.id
+    managedIdentity: true
+    alwaysOn: false
     appSettings: {
       // ATTENTION! must be in sync with the function module
       AzureWebJobsStorage: storageConnectionString
@@ -138,7 +151,7 @@ module appServiceSlots 'modules/create-appserviceslot.bicep' = [for (slot, index
 }]
 
 module makeSlotPrivate 'modules/make-private.bicep' = [for (slot, index) in slots: {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'make${slot.name}SlotPrivate', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'make${slot.name}SlotPrivate', environment, buildNumber)
   params: {
     location: location
     dnsId: appFuncPrivateDnsZoneId
@@ -154,11 +167,24 @@ module makeSlotPrivate 'modules/make-private.bicep' = [for (slot, index) in slot
     appServiceSlots[index]
   ]
 }]
+
+// permission to keyvault
+module keyVaultAccessForSlot 'modules/add-keyVaultAccessPolicy.bicep' = [for (slot, index) in slots: {
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'kv4slot${index}', environment, buildNumber)
+  params: {
+    kvName: keyVaultName
+    objectId: appServiceSlots[index].outputs.functionSlotPrincipalId
+    secretsPolicies: [
+      'get'
+      'list'
+    ]
+  }
+}]
 // =============================================
 
 // Permissions to keyvault
 module keyVaultAccessPolicyForFuncApp 'modules/add-keyVaultAccessPolicy.bicep' = {
-  name: format(namingConvention.namingPatterns.modules, applicationName, 'keyVaultAccessPolicyForFuncApp', environment, uniqueString)
+  name: format(namingConvention.namingPatterns.modules, applicationName, 'kv4func${functionName}', environment, buildNumber)
   params: {
     kvName: keyVaultName
     objectId: function.outputs.identityPrincipalId
